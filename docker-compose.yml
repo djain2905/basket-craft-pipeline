@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: basket_craft_db
+    environment:
+      POSTGRES_DB: ${PG_DB}
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+    ports:
+      - "${PG_PORT}:5432"
+    volumes:
+      - basket_craft_data:/var/lib/postgresql/data
+
+volumes:
+  basket_craft_data:
