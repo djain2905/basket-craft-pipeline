@@ -109,11 +109,11 @@ Connection string: `postgresql://student:student123@localhost:5433/basket_craft`
 
 ```
 # MySQL source
-MYSQL_HOST=...
+MYSQL_HOST=db.isba.co
 MYSQL_PORT=3306
-MYSQL_DB=basket_craft
-MYSQL_USER=...
-MYSQL_PASSWORD=...
+MYSQL_DATABASE=basket_craft
+MYSQL_USER=analyst
+MYSQL_PASSWORD=
 
 # PostgreSQL destination
 PG_HOST=localhost

@@ -66,10 +66,10 @@ Expected: all five packages install without errors.
 
 ```
 # MySQL source (Basket Craft)
-MYSQL_HOST=
+MYSQL_HOST=db.isba.co
 MYSQL_PORT=3306
-MYSQL_DB=basket_craft
-MYSQL_USER=
+MYSQL_DATABASE=basket_craft
+MYSQL_USER=analyst
 MYSQL_PASSWORD=
 
 # PostgreSQL destination (Docker)
@@ -401,7 +401,7 @@ load_dotenv()
 def get_mysql_engine():
     url = (
         f"mysql+pymysql://{os.getenv('MYSQL_USER')}:{os.getenv('MYSQL_PASSWORD')}"
-        f"@{os.getenv('MYSQL_HOST')}:{os.getenv('MYSQL_PORT', 3306)}/{os.getenv('MYSQL_DB')}"
+        f"@{os.getenv('MYSQL_HOST')}:{os.getenv('MYSQL_PORT', 3306)}/{os.getenv('MYSQL_DATABASE')}"
     )
     return create_engine(url)
 
