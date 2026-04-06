@@ -1,0 +1,144 @@
+<h2>Basket Craft — ETL Pipeline Diagram</h2>
+<p class="subtitle">MySQL → Python ETL → PostgreSQL (Docker) · manual trigger</p>
+
+<div style="margin: 1.5rem auto; max-width: 960px; font-family: monospace;">
+
+  <!-- ═══ ROW 1: SOURCE TABLES ═══ -->
+  <div style="text-align:center; margin-bottom: 0.4rem;">
+    <span class="label">SOURCE · Basket Craft MySQL</span>
+  </div>
+
+  <div style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 0.3rem;">
+    <div style="background:#1e3a5f;border:1.5px solid #4a90d9;border-radius:8px;padding:0.6rem 1rem;text-align:center;min-width:110px;">
+      <div style="color:#7ec8e3;font-size:0.78rem;font-weight:700;">orders</div>
+      <div style="color:#8ab4d9;font-size:0.68rem;margin-top:0.2rem;">id, created_at</div>
+    </div>
+    <div style="background:#1e3a5f;border:1.5px solid #4a90d9;border-radius:8px;padding:0.6rem 1rem;text-align:center;min-width:110px;">
+      <div style="color:#7ec8e3;font-size:0.78rem;font-weight:700;">order_items</div>
+      <div style="color:#8ab4d9;font-size:0.68rem;margin-top:0.2rem;">order_id, product_id, price, qty</div>
+    </div>
+    <div style="background:#1e3a5f;border:1.5px solid #4a90d9;border-radius:8px;padding:0.6rem 1rem;text-align:center;min-width:110px;">
+      <div style="color:#7ec8e3;font-size:0.78rem;font-weight:700;">products</div>
+      <div style="color:#8ab4d9;font-size:0.68rem;margin-top:0.2rem;">id, name, category_id</div>
+    </div>
+    <div style="background:#1e3a5f;border:1.5px dashed #4a90d9;border-radius:8px;padding:0.6rem 1rem;text-align:center;min-width:110px;opacity:0.7;">
+      <div style="color:#7ec8e3;font-size:0.78rem;font-weight:700;">categories</div>
+      <div style="color:#8ab4d9;font-size:0.68rem;margin-top:0.2rem;">id, name · if exists</div>
+    </div>
+  </div>
+
+  <!-- down arrows -->
+  <div style="display:flex;justify-content:center;gap:1rem;margin-bottom:0.3rem;">
+    <div style="width:110px;text-align:center;color:#4a90d9;">↓</div>
+    <div style="width:110px;text-align:center;color:#4a90d9;">↓</div>
+    <div style="width:110px;text-align:center;color:#4a90d9;">↓</div>
+    <div style="width:110px;text-align:center;color:#4a90d9;opacity:0.7;">↓</div>
+  </div>
+
+  <!-- ═══ ROW 2: EXTRACT ═══ -->
+  <div style="background:#2a1a4a;border:2px solid #9b59b6;border-radius:10px;padding:0.8rem 1.5rem;margin-bottom:0.3rem;display:flex;align-items:center;gap:2rem;justify-content:center;">
+    <div style="font-size:1.1rem;">⬇️</div>
+    <div>
+      <div style="color:#fff;font-weight:700;font-size:0.9rem;">extract.py</div>
+      <div style="color:#c39bd3;font-size:0.74rem;margin-top:0.15rem;">pymysql + SQLAlchemy · <code style="color:#da9ff5">read_sql()</code> → 4 raw DataFrames</div>
+    </div>
+    <div style="margin-left:auto;background:#1a0a2e;border:1px solid #9b59b6;border-radius:6px;padding:0.4rem 0.8rem;font-size:0.72rem;color:#c39bd3;">
+      df_orders &nbsp;·&nbsp; df_items &nbsp;·&nbsp; df_products &nbsp;·&nbsp; df_categories
+    </div>
+  </div>
+
+  <div style="text-align:center;color:#9b59b6;margin-bottom:0.3rem;">↓ &nbsp;<span style="font-size:0.72rem;">DataFrames passed in-memory</span></div>
+
+  <!-- ═══ ROW 3: TRANSFORM ═══ -->
+  <div style="background:#1a3a2a;border:2px solid #27ae60;border-radius:10px;padding:0.9rem 1.5rem;margin-bottom:0.3rem;">
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.7rem;">
+      <div style="font-size:1.1rem;">⚙️</div>
+      <div style="color:#fff;font-weight:700;font-size:0.9rem;">transform.py</div>
+      <div style="color:#7dcea0;font-size:0.74rem;">pandas · merge → aggregate → compute</div>
+    </div>
+    <!-- Transform steps -->
+    <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;justify-content:center;">
+      <div style="background:#0d2a1a;border:1px solid #27ae60;border-radius:6px;padding:0.4rem 0.7rem;text-align:center;font-size:0.72rem;">
+        <div style="color:#7dcea0;font-weight:600;">① Merge</div>
+        <div style="color:#aaa;">items ⋈ orders</div>
+      </div>
+      <div style="color:#27ae60;font-size:1rem;">→</div>
+      <div style="background:#0d2a1a;border:1px solid #27ae60;border-radius:6px;padding:0.4rem 0.7rem;text-align:center;font-size:0.72rem;">
+        <div style="color:#7dcea0;font-weight:600;">② Merge</div>
+        <div style="color:#aaa;">+ products</div>
+      </div>
+      <div style="color:#27ae60;font-size:1rem;">→</div>
+      <div style="background:#0d2a1a;border:1px solid #27ae60;border-radius:6px;padding:0.4rem 0.7rem;text-align:center;font-size:0.72rem;">
+        <div style="color:#7dcea0;font-weight:600;">③ Resolve</div>
+        <div style="color:#aaa;">category name</div>
+      </div>
+      <div style="color:#27ae60;font-size:1rem;">→</div>
+      <div style="background:#0d2a1a;border:1px solid #27ae60;border-radius:6px;padding:0.4rem 0.7rem;text-align:center;font-size:0.72rem;">
+        <div style="color:#7dcea0;font-weight:600;">④ Floor</div>
+        <div style="color:#aaa;">date → year-month</div>
+      </div>
+      <div style="color:#27ae60;font-size:1rem;">→</div>
+      <div style="background:#0d2a1a;border:1px solid #27ae60;border-radius:6px;padding:0.4rem 0.7rem;text-align:center;font-size:0.72rem;">
+        <div style="color:#7dcea0;font-weight:600;">⑤ Group By</div>
+        <div style="color:#aaa;">month + category</div>
+      </div>
+      <div style="color:#27ae60;font-size:1rem;">→</div>
+      <div style="background:#0d2a1a;border:1px solid #2ecc71;border-radius:6px;padding:0.4rem 0.7rem;text-align:center;font-size:0.72rem;border-width:1.5px;">
+        <div style="color:#2ecc71;font-weight:600;">⑥ Aggregate</div>
+        <div style="color:#aaa;">revenue · count · AOV</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;color:#27ae60;margin-bottom:0.3rem;">↓ &nbsp;<span style="font-size:0.72rem;">monthly_sales_summary DataFrame</span></div>
+
+  <!-- ═══ ROW 4: LOAD ═══ -->
+  <div style="background:#3a2a1a;border:2px solid #e67e22;border-radius:10px;padding:0.8rem 1.5rem;margin-bottom:0.3rem;display:flex;align-items:center;gap:2rem;justify-content:center;">
+    <div style="font-size:1.1rem;">⬆️</div>
+    <div>
+      <div style="color:#fff;font-weight:700;font-size:0.9rem;">load.py</div>
+      <div style="color:#f0b27a;font-size:0.74rem;margin-top:0.15rem;">SQLAlchemy · <code style="color:#f5cba7">to_sql(if_exists="replace")</code> · idempotent — safe to re-run</div>
+    </div>
+    <div style="margin-left:auto;background:#2a1a0a;border:1px solid #e67e22;border-radius:6px;padding:0.4rem 0.8rem;font-size:0.72rem;color:#f0b27a;">
+      truncate → insert
+    </div>
+  </div>
+
+  <div style="text-align:center;color:#e67e22;margin-bottom:0.3rem;">↓ &nbsp;<span style="font-size:0.72rem;">INSERT rows</span></div>
+
+  <!-- ═══ ROW 5: DESTINATION ═══ -->
+  <div style="text-align:center; margin-bottom: 0.4rem;">
+    <span class="label">DESTINATION · PostgreSQL 16 in Docker · port 5433</span>
+  </div>
+
+  <div style="display:flex;justify-content:center;">
+    <div style="background:#1e2a3a;border:2px solid #2980b9;border-radius:10px;padding:0.8rem 1.5rem;display:flex;gap:2.5rem;align-items:center;">
+      <div style="font-size:1.1rem;">🐘</div>
+      <div>
+        <div style="color:#7ec8e3;font-size:0.82rem;font-weight:700;margin-bottom:0.4rem;"><code>monthly_sales_summary</code></div>
+        <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+          <div style="font-size:0.72rem;color:#85c1e9;">
+            <div><span style="color:#aaa;">year_month</span> &nbsp;DATE</div>
+            <div><span style="color:#aaa;">category</span> &nbsp;&nbsp;&nbsp;TEXT</div>
+          </div>
+          <div style="font-size:0.72rem;color:#85c1e9;">
+            <div><span style="color:#aaa;">revenue</span> &nbsp;&nbsp;&nbsp;&nbsp;NUMERIC(12,2)</div>
+            <div><span style="color:#aaa;">order_count</span> INTEGER</div>
+            <div><span style="color:#aaa;">avg_order_value</span> NUMERIC(10,2)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ FOOTER: pipeline.py ═══ -->
+  <div style="margin-top:1.5rem;background:#111;border:1px dashed #555;border-radius:8px;padding:0.7rem 1.2rem;text-align:center;">
+    <span style="color:#aaa;font-size:0.76rem;">orchestrated by &nbsp;</span>
+    <code style="color:#f5cba7;font-size:0.82rem;">pipeline.py</code>
+    <span style="color:#555;font-size:0.76rem;margin:0 0.8rem;">·</span>
+    <code style="color:#ccc;font-size:0.76rem;">python pipeline.py</code>
+    <span style="color:#555;font-size:0.76rem;margin:0 0.8rem;">·</span>
+    <span style="color:#aaa;font-size:0.76rem;">calls extract → transform → load in sequence</span>
+  </div>
+
+</div>

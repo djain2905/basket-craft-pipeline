@@ -1,0 +1,93 @@
+<h2>Basket Craft — Draft Pipeline Architecture</h2>
+<p class="subtitle">High-level ETL flow from MySQL to PostgreSQL · refining as we go</p>
+
+<div style="margin: 2rem auto; max-width: 860px;">
+
+  <!-- Pipeline flow -->
+  <div style="display: flex; align-items: center; gap: 0; justify-content: center; flex-wrap: nowrap;">
+
+    <!-- Source -->
+    <div style="background: #1e3a5f; border: 2px solid #4a90d9; border-radius: 10px; padding: 1rem 1.2rem; text-align: center; min-width: 130px;">
+      <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">🛒</div>
+      <div style="font-weight: 700; color: #fff; font-size: 0.95rem;">Basket Craft</div>
+      <div style="color: #8ab4d9; font-size: 0.78rem; margin-top: 0.2rem;">MySQL Database</div>
+      <div style="color: #6a9bbf; font-size: 0.72rem; margin-top: 0.3rem;">orders · products · categories</div>
+    </div>
+
+    <!-- Arrow + Extract -->
+    <div style="display: flex; flex-direction: column; align-items: center; margin: 0 0.2rem;">
+      <div style="color: #4a90d9; font-size: 0.7rem; margin-bottom: 0.2rem;">SQL SELECT</div>
+      <div style="color: #4a90d9; font-size: 1.4rem;">→</div>
+    </div>
+
+    <div style="background: #2a1a4a; border: 2px solid #9b59b6; border-radius: 10px; padding: 1rem 1.2rem; text-align: center; min-width: 130px;">
+      <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">⬇️</div>
+      <div style="font-weight: 700; color: #fff; font-size: 0.95rem;">Extract</div>
+      <div style="color: #c39bd3; font-size: 0.78rem; margin-top: 0.2rem;">Python · pandas</div>
+      <div style="color: #9b7bb3; font-size: 0.72rem; margin-top: 0.3rem;">read_sql() from MySQL</div>
+    </div>
+
+    <!-- Arrow + Transform -->
+    <div style="display: flex; flex-direction: column; align-items: center; margin: 0 0.2rem;">
+      <div style="color: #9b59b6; font-size: 0.7rem; margin-bottom: 0.2rem;">DataFrame</div>
+      <div style="color: #9b59b6; font-size: 1.4rem;">→</div>
+    </div>
+
+    <div style="background: #1a3a2a; border: 2px solid #27ae60; border-radius: 10px; padding: 1rem 1.2rem; text-align: center; min-width: 130px;">
+      <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">⚙️</div>
+      <div style="font-weight: 700; color: #fff; font-size: 0.95rem;">Transform</div>
+      <div style="color: #7dcea0; font-size: 0.78rem; margin-top: 0.2rem;">Python · pandas</div>
+      <div style="color: #5dae80; font-size: 0.72rem; margin-top: 0.3rem;">group by month + category</div>
+    </div>
+
+    <!-- Arrow + Load -->
+    <div style="display: flex; flex-direction: column; align-items: center; margin: 0 0.2rem;">
+      <div style="color: #27ae60; font-size: 0.7rem; margin-bottom: 0.2rem;">aggregated df</div>
+      <div style="color: #27ae60; font-size: 1.4rem;">→</div>
+    </div>
+
+    <div style="background: #3a2a1a; border: 2px solid #e67e22; border-radius: 10px; padding: 1rem 1.2rem; text-align: center; min-width: 130px;">
+      <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">⬆️</div>
+      <div style="font-weight: 700; color: #fff; font-size: 0.95rem;">Load</div>
+      <div style="color: #f0b27a; font-size: 0.78rem; margin-top: 0.2rem;">SQLAlchemy</div>
+      <div style="color: #d08050; font-size: 0.72rem; margin-top: 0.3rem;">to_sql() → PostgreSQL</div>
+    </div>
+
+    <!-- Arrow + Destination -->
+    <div style="display: flex; flex-direction: column; align-items: center; margin: 0 0.2rem;">
+      <div style="color: #e67e22; font-size: 0.7rem; margin-bottom: 0.2rem;">INSERT</div>
+      <div style="color: #e67e22; font-size: 1.4rem;">→</div>
+    </div>
+
+    <div style="background: #1e2a3a; border: 2px solid #2980b9; border-radius: 10px; padding: 1rem 1.2rem; text-align: center; min-width: 130px;">
+      <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">🐘</div>
+      <div style="font-weight: 700; color: #fff; font-size: 0.95rem;">Destination</div>
+      <div style="color: #85c1e9; font-size: 0.78rem; margin-top: 0.2rem;">PostgreSQL (Docker)</div>
+      <div style="color: #5aa0c9; font-size: 0.72rem; margin-top: 0.3rem;">monthly_sales_summary</div>
+    </div>
+
+  </div>
+
+  <!-- What gets computed -->
+  <div style="margin-top: 2rem; background: #1a1a2e; border: 1px solid #333; border-radius: 8px; padding: 1.2rem 1.5rem;">
+    <div class="label" style="margin-bottom: 0.8rem;">Dashboard Metrics (target output)</div>
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 160px;">
+        <div style="color: #7dcea0; font-weight: 600; font-size: 0.85rem;">revenue</div>
+        <div style="color: #aaa; font-size: 0.78rem;">SUM(order_total) per month + category</div>
+      </div>
+      <div style="flex: 1; min-width: 160px;">
+        <div style="color: #85c1e9; font-weight: 600; font-size: 0.85rem;">order_count</div>
+        <div style="color: #aaa; font-size: 0.78rem;">COUNT(order_id) per month + category</div>
+      </div>
+      <div style="flex: 1; min-width: 160px;">
+        <div style="color: #f0b27a; font-weight: 600; font-size: 0.78rem;">avg_order_value</div>
+        <div style="color: #aaa; font-size: 0.78rem;">revenue ÷ order_count</div>
+      </div>
+    </div>
+  </div>
+
+  <p style="color: #666; font-size: 0.78rem; text-align: center; margin-top: 1rem; font-style: italic;">
+    Draft — schema details will refine the transform step
+  </p>
+</div>
